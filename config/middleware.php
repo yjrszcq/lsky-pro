@@ -13,5 +13,6 @@
 // | 中间件配置
 // +----------------------------------------------------------------------
 return [
-    'WebAuth' => app\http\middleware\WebAuth::class
+    'Init' => app\http\middleware\Init::class,
+    'Auth' => app\http\middleware\Auth::class
 ];
