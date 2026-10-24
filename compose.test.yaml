@@ -1,7 +1,7 @@
 # Isolated services and known disposable credentials. No host ports are exposed.
 services:
   tests:
-    image: lsky-pro:dev-php8.5.12
+    image: lsky-pro:dev
     build:
       context: .
       target: development

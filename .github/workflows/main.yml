@@ -22,7 +22,7 @@ jobs:
           context: .
           target: development
           load: true
-          tags: lsky-pro:dev-php8.5.12
+          tags: lsky-pro:dev
           cache-from: type=gha,scope=development
           cache-to: type=gha,mode=max,scope=development
       - name: Build protocol fixtures
@@ -47,7 +47,7 @@ jobs:
           context: .
           target: production
           load: true
-          tags: lsky-pro:php8.5.12
+          tags: lsky-pro:latest
           cache-from: |
             type=gha,scope=development
             type=gha,scope=production

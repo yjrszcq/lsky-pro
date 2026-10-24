@@ -25,7 +25,7 @@ docker run -d --name lsky-pro --restart unless-stopped \
   -p 8089:8089 \
   -e APP_URL=http://localhost:8089 \
   -v lsky-data:/var/www/html/storage \
-  lsky-pro:php8.5.12
+  lsky-pro:latest
 ```
 
 镜像内未打包 SQL Server 的 ODBC/PDO 驱动。需要 SQL Server 时，应在派生镜像中安装相应驱动并另行验证。
@@ -96,8 +96,8 @@ docker compose -p lsky-tests -f compose.test.yaml down --volumes
 只运行不依赖外部测试服务的应用回归：
 
 ```sh
-docker build --target development -t lsky-pro:dev-php8.5.12 .
-docker run --rm lsky-pro:dev-php8.5.12 php vendor/bin/phpunit --exclude-group integration
+docker build --target development -t lsky-pro:dev .
+docker run --rm lsky-pro:dev php vendor/bin/phpunit --exclude-group integration
 ```
 
 S3/MinIO 适配器使用 Moto HTTP 协议服务验证传输和图片上传管线；这不能替代 AWS 或 MinIO 实例验收。云审核和远程更新的单元测试使用固定响应验证应用处理逻辑。OSS、COS、七牛、又拍云及商业审核服务的完整联调需要专用测试凭据，不能从本地测试通过推断厂商服务可用。
@@ -105,7 +105,7 @@ S3/MinIO 适配器使用 Moto HTTP 协议服务验证传输和图片上传管线
 ## 生产容器验收
 
 ```sh
-docker build --target production -t lsky-pro:php8.5.12 .
+docker build --target production -t lsky-pro:latest .
 python3 tests/docker/acceptance.py
 ```
 

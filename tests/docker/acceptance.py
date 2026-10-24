@@ -139,7 +139,7 @@ def browser_acceptance(base, email, password, png):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--image', default='lsky-pro:php8.5.12')
+    parser.add_argument('--image', default='lsky-pro:latest')
     parser.add_argument('--browser', action='store_true')
     parser.add_argument('--web-port', type=int, default=8089)
     args = parser.parse_args()
