@@ -122,8 +122,45 @@ class ApplicationTest extends TestCase
         $this->assertSame($first->pathname, $second->pathname);
         $first->delete();
         $this->assertTrue($second->filesystem()->fileExists($second->pathname));
+        $this->assertFileExists(public_path($second->getThumbnailPathname()));
         $second->delete();
         $this->assertFalse($second->filesystem()->fileExists($second->pathname));
+        $this->assertFileDoesNotExist(public_path($second->getThumbnailPathname()));
+    }
+
+    public function test_deletion_preserves_thumbnail_shared_across_storage_strategies(): void
+    {
+        $this->configureGroup([GroupConfigKey::ImageSaveQuality => 100]);
+        $contents = $this->image()->getContent();
+        $this->postJson('/upload', ['file' => UploadedFile::fake()->createWithContent('same.png', $contents)])
+            ->assertJsonPath('status', true);
+        $first = Image::query()->latest('id')->firstOrFail();
+
+        $strategy = Strategy::query()->firstOrFail()->replicate();
+        $strategy->configs = $strategy->configs->merge([
+            'root' => storage_path('app/secondary-uploads'),
+            'url' => 'http://localhost/secondary-uploads',
+        ]);
+        @mkdir(storage_path('app/secondary-uploads'), 0777, true);
+        $strategy->save();
+        Group::query()->firstOrFail()->strategies()->attach($strategy->id);
+        $this->postJson('/upload', [
+            'file' => UploadedFile::fake()->createWithContent('same.png', $contents),
+            'strategy_id' => $strategy->id,
+        ])->assertJsonPath('status', true);
+        $second = Image::query()->latest('id')->firstOrFail();
+        $this->assertNotSame($first->strategy_id, $second->strategy_id);
+        $this->assertSame($first->getThumbnailPathname(), $second->getThumbnailPathname());
+        $thumbnail = public_path($second->getThumbnailPathname());
+        $this->assertFileExists($thumbnail);
+
+        $first->delete();
+        $this->assertFalse($first->filesystem()->fileExists($first->pathname));
+        $this->assertTrue($second->filesystem()->fileExists($second->pathname));
+        $this->assertFileExists($thumbnail);
+        $second->delete();
+        $this->assertFalse($second->filesystem()->fileExists($second->pathname));
+        $this->assertFileDoesNotExist($thumbnail);
     }
 
     public function test_upload_rejects_missing_file_and_disallowed_extension(): void

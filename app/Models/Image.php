@@ -114,12 +114,21 @@ class Image extends Model
                 try {
                     // 删除物理文件
                     $image->filesystem()->delete($image->pathname);
-                    @unlink(public_path($image->getThumbnailPathname()));
                     // 删除缓存
                     Cache::forget("image_{$image->key}");
                 } catch (\Throwable $e) {
                     Utils::e($e, '删除物理文件时发生异常');
                 }
+            }
+
+            // 缩略图按 MD5 和格式全局共享，其他策略中的图片也可能引用它。
+            if (!static::query()
+                ->where('id', '<>', $image->id)
+                ->where('md5', $image->md5)
+                ->where('extension', $image->extension === 'svg' ? '=' : '<>', 'svg')
+                ->exists()
+            ) {
+                @unlink(public_path($image->getThumbnailPathname()));
             }
         });
     }

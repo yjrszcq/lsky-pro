@@ -63,10 +63,10 @@ class Client:
         check(result.get("status") is True, f"{method} {path}: {result.get('message')}")
         return result["data"]
 
-    def upload(self, png, path="/upload", strategy=None):
+    def upload(self, contents, path="/upload", strategy=None, filename="container.png", mime_type="image/png"):
         boundary = "lsky" + secrets.token_hex(12)
-        data = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="container.png"\r\n'
-                'Content-Type: image/png\r\n\r\n').encode() + png + f'\r\n--{boundary}--\r\n'.encode()
+        data = (f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{filename}"\r\n'
+                f'Content-Type: {mime_type}\r\n\r\n').encode() + contents + f'\r\n--{boundary}--\r\n'.encode()
         if strategy is not None:
             data = (f'--{boundary}\r\nContent-Disposition: form-data; name="strategy_id"\r\n\r\n{strategy}\r\n').encode() + data
         status, body, _ = self.request(path, data, "POST", f"multipart/form-data; boundary={boundary}")
@@ -226,6 +226,16 @@ def main():
         api.json('/api/v1/images/' + api_upload['key'], method='DELETE')
         print('PASS bearer token issue/authentication, API upload/list/delete and metadata endpoints', flush=True)
 
+        # SVG bypasses re-encoding, making the shared-thumbnail regression deterministic.
+        svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><rect width="20" height="20" fill="blue"/></svg>'
+        shared = client.upload(svg, strategy=strategy_id, filename='shared.svg', mime_type='image/svg+xml')
+        duplicate = api.upload(svg, '/api/v1/upload', filename='shared.svg', mime_type='image/svg+xml')
+        check(shared['links']['thumbnail_url'] == duplicate['links']['thumbnail_url'], 'Cross-strategy shared thumbnail fixture')
+        api.json('/api/v1/images/' + duplicate['key'], method='DELETE')
+        check(client.request(urllib.parse.urlsplit(shared['links']['thumbnail_url']).path)[0] == 200, 'Cross-strategy deletion must preserve shared thumbnail')
+        check(client.request(urllib.parse.urlsplit(uploaded['links']['thumbnail_url']).path)[0] == 200, 'PNG thumbnail before container recreation')
+        print('PASS cross-strategy duplicate deletion preserves shared thumbnails', flush=True)
+
         if args.browser:
             browser_acceptance(base, email, password, png)
 
@@ -240,6 +250,7 @@ def main():
         check(docker('exec', name, 'php', '-r', 'echo hash_file("sha256", "storage/.env");') == key_hash, 'Persisted encryption key/config')
         check(client.request(urllib.parse.urlsplit(uploaded['links']['url']).path)[0] == 200, 'Persisted original image')
         check(client.request(urllib.parse.urlsplit(uploaded['links']['thumbnail_url']).path)[0] == 200, 'Persisted thumbnail')
+        check(client.request(urllib.parse.urlsplit(shared['links']['thumbnail_url']).path)[0] == 200, 'Persisted shared thumbnail')
         check(api.json('/api/v1/profile')['email'] == email, 'Persisted API token/database')
         api.json('/api/v1/tokens', method='DELETE')
         check(api.request('/api/v1/profile')[0] == 401, 'Token revocation')
