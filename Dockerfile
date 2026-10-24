@@ -16,7 +16,7 @@ COPY docker/apache.conf /etc/apache2/sites-available/000-default.conf
 COPY docker/php.ini /usr/local/etc/php/conf.d/lsky.ini
 COPY docker/entrypoint.sh /usr/local/bin/lsky-entrypoint
 RUN chmod +x /usr/local/bin/lsky-entrypoint \
-    && mkdir -p storage/app/public storage/app/uploads storage/app/thumbnails storage/database \
+    && mkdir -p storage/app/public storage/app/uploads storage/app/thumbnails \
         storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
 ENV WEB_PORT=8089
 EXPOSE 8089
@@ -29,6 +29,7 @@ COPY patches ./patches
 RUN composer install --prefer-dist --no-interaction --no-progress --no-scripts
 
 FROM base AS development
+ENV LSKY_DEVELOPMENT=1
 COPY . .
 COPY --from=dependencies /var/www/html/vendor ./vendor
 
@@ -47,7 +48,7 @@ FROM base AS production
 COPY . .
 COPY --from=production-dependencies /var/www/html/vendor ./vendor
 COPY --from=assets /build/public ./public
-RUN mkdir -p storage/app/uploads storage/app/thumbnails storage/database \
+RUN mkdir -p storage/app/uploads storage/app/thumbnails \
         storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && rm -rf public/thumbnails \
     && ln -s /var/www/html/storage/app/thumbnails public/thumbnails \

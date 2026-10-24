@@ -10,7 +10,7 @@ if [ "${1:-}" = 'apache2-foreground' ]; then
         exit 1
     fi
     printf 'Listen %s\n' "$WEB_PORT" > /etc/apache2/ports.conf
-    mkdir -p storage/app/uploads storage/app/thumbnails storage/database \
+    mkdir -p storage/app/uploads storage/app/thumbnails \
         storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs
 
     # Persist install state and encryption key alongside uploaded data.
@@ -26,7 +26,7 @@ if [ "${1:-}" = 'apache2-foreground' ]; then
     fi
     ln -sfn /var/www/html/storage/.env .env
     ln -sfn /var/www/html/storage/installed.lock installed.lock
-    if [ ! -L public/thumbnails ]; then
+    if [ "${LSKY_DEVELOPMENT:-0}" != 1 ] && [ ! -L public/thumbnails ]; then
         cp -a public/thumbnails/. storage/app/thumbnails/
         rm -rf public/thumbnails
         ln -s /var/www/html/storage/app/thumbnails public/thumbnails
