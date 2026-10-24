@@ -22,6 +22,11 @@ def check(condition, message):
         raise AssertionError(message)
 
 
+def check_logs(name):
+    logs = docker('logs', name)
+    check(not re.search(r'PHP (Fatal error|Warning|Deprecated)', logs), 'PHP runtime errors in production log')
+
+
 class Client:
     def __init__(self, base):
         self.base = base
@@ -228,6 +233,7 @@ def main():
         migration = docker('run', '--rm', '-v', volume + ':/var/www/html/storage', args.image, 'php', 'artisan', 'migrate', '--force')
         check('Nothing to migrate' in migration, 'One-off migrations must use persisted database')
         key_hash = docker('exec', name, 'php', '-r', 'echo hash_file("sha256", "storage/.env");')
+        check_logs(name)
         docker('rm', '-f', name)
         client = start()
         check(not client.request('/')[2].endswith('/install'), 'Container recreation must retain installation')
@@ -245,8 +251,7 @@ def main():
                 break
             time.sleep(0.5)
         check(health == 'healthy', 'Production Docker health check')
-        logs = docker('logs', name)
-        check(not re.search(r'PHP (Fatal error|Warning|Deprecated)', logs), 'PHP runtime errors in production log')
+        check_logs(name)
         print('PASS Docker health check and clean production PHP logs', flush=True)
         print('Production container acceptance passed.', flush=True)
     except Exception:
