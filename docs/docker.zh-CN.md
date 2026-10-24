@@ -130,13 +130,15 @@ python3 tests/docker/acceptance.py --browser
 
 ## GitHub 镜像构建
 
-[工作流](../.github/workflows/main.yml) 在 GitHub 执行：
+测试和发布由两个独立工作流在 GitHub 执行：
 
-- PR、推送 `master`、`dev` 或 `v*` 标签时，执行容器测试和生产镜像构建，不发布镜像。
-- 在 Actions 页面手动运行工作流，填写 `version`（例如 `1.0.0`）；先完成测试，通过后发布镜像。
+- [Container tests](../.github/workflows/main.yml)：推送到 `master` 时自动执行，也支持在 Actions 页面手动运行；执行数据库、服务集成及生产 HTTP/浏览器/持久化验收，不发布镜像。PR、`dev` 分支推送和标签推送不自动触发。
+- [Build and Push Docker Image](../.github/workflows/docker.yaml)：仅手动运行，填写 `version`（例如 `1.0.0`）后构建并发布，不会自动运行或等待测试工作流。发布前应确认所选提交的测试结果。
 - 发布 Docker Hub 镜像 `szcq/lsky-pro:<version>` 和 `szcq/lsky-pro:latest`，支持 `linux/amd64`、`linux/arm64`。
 - 在仓库 Settings → Secrets and variables → Actions 中添加 `DOCKER_TOKEN`，值为有权推送 `szcq/lsky-pro` 的 Docker Hub 访问令牌。登录用户名由工作流的 `IMAGE_OWNER: szcq` 指定。
 
 
+
+两个工作流各自构建镜像，通过 GitHub Actions 构建缓存减少重复工作；发布不会直接复用测试任务中的本地镜像。
 
 本地仅检查工作流语法，并直接执行 Docker 构建和应用测试，不模拟执行 GitHub Actions。多架构构建与实际 Docker Hub 推送结果以 GitHub 工作流运行记录为准。
