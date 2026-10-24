@@ -6,8 +6,11 @@
 
 ## 首次部署
 
+面向用户的 `compose.yaml` 使用 Docker Hub 镜像 `szcq/lsky-pro:latest`，无需在本地构建。
+
 ```sh
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 访问 `http://localhost:8089` 完成安装。选择 SQLite 时，数据库路径留空，数据库会创建在 `/var/www/html/storage/database.sqlite`；设置管理员邮箱和密码后提交。也可以选择自己提供的 MySQL 或 PostgreSQL 服务。
@@ -15,7 +18,7 @@ docker compose up -d --build
 修改宿主机端口和对外地址：
 
 ```sh
-LSKY_PORT=9080 LSKY_URL=https://images.example.com docker compose up -d --build
+LSKY_PORT=9080 LSKY_URL=https://images.example.com docker compose up -d
 ```
 
 修改地址后，已安装站点的存储策略访问 URL 也应通过后台相应更新。HTTPS 由反向代理终止，代理需传递原始 `Host`、`X-Forwarded-Proto` 和 `X-Forwarded-For`。容器默认监听 HTTP 8089；直接运行镜像时，可用 `WEB_PORT` 修改容器监听端口，并同步修改端口映射。
@@ -25,7 +28,7 @@ docker run -d --name lsky-pro --restart unless-stopped \
   -p 8089:8089 \
   -e APP_URL=http://localhost:8089 \
   -v lsky-data:/var/www/html/storage \
-  lsky-pro:latest
+  szcq/lsky-pro:latest
 ```
 
 镜像内未打包 SQL Server 的 ODBC/PDO 驱动。需要 SQL Server 时，应在派生镜像中安装相应驱动并另行验证。
@@ -46,13 +49,15 @@ docker run --rm -v lsky-pro_lsky-data:/data:ro -v "$PWD":/backup \
 
 卷名前缀取决于 Compose 项目名，用 `docker volume ls` 确认实际名称，替换示例中的 `lsky-pro_lsky-data`。
 
-从源码更新：
+更新已发布的镜像：
 
 ```sh
-docker compose build --pull app
+docker compose pull app
 docker compose run --rm app php artisan migrate --force
 docker compose up -d --force-recreate app
 ```
+
+如需从源码构建生产镜像，可执行 `docker build --pull --target production -t szcq/lsky-pro:latest .`，然后运行上述迁移和重建命令，跳过拉取镜像。
 
 首次安装通过浏览器完成。**不要在已有数据库上重新运行 `lsky:install`**：它会调用 `migrate:fresh` 重建表。镜像更新使用常规 `migrate`，不会自动运行安装器。Docker 部署使用镜像更新，后台在线增量更新的代码变更不会持久保存到新容器。
 
@@ -131,5 +136,7 @@ python3 tests/docker/acceptance.py --browser
 - 推送 `master`、`dev`、`v*` 标签或手动触发时，先测试，通过后发布到 `ghcr.io/<owner>/<repo>`。
 - 发布 `linux/amd64`、`linux/arm64` 镜像，生成分支、提交和语义版本标签；默认分支提供 `latest`。
 - 使用仓库自带 `GITHUB_TOKEN`，发布作业需要 Packages 写权限。首次发布后可在 GitHub Packages 设置镜像可见性。
+
+当前工作流发布到 GHCR；用户部署配置使用的 `szcq/lsky-pro:latest` 需另行发布到 Docker Hub。
 
 本地仅检查工作流语法，并直接执行 Docker 构建和应用测试，不模拟执行 GitHub Actions。多架构构建与实际 GHCR 推送结果以 GitHub 工作流运行记录为准。

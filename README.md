@@ -44,7 +44,8 @@
 ### 🐳 Docker 部署
 
 ```sh
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
 
 访问 `http://localhost:8089` 完成安装。运行、开发和测试统一使用 PHP **8.5.12**，后端依赖已更新到 Laravel 12。配置、数据库和图片保存在独立数据卷中。
