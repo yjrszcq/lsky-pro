@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       version:
-        required: true
+        required: false
         type: string
     secrets:
       DOCKER_TOKEN:
@@ -12,9 +12,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Image version tag
-        required: true
+        description: Image version tag (leave empty to use VERSION)
+        required: false
         type: string
+        default: '2.1'
 
 env:
   IMAGE_OWNER: szcq
@@ -30,6 +31,17 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v6
+      - name: Resolve image version
+        id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="${INPUT_VERSION:-$(cat VERSION)}"
+          if ! [[ "$version" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo '::error::VERSION or the supplied version must be a valid image tag.'
+            exit 1
+          fi
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-qemu-action@v4
       - uses: docker/setup-buildx-action@v4
       - name: Log in to Docker Hub
@@ -45,7 +57,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+            ${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
             ${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=production
           cache-to: type=gha,mode=max,scope=production
