@@ -1,6 +1,14 @@
 name: Build and Push Docker Image
 
 on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+    secrets:
+      DOCKER_TOKEN:
+        required: true
   workflow_dispatch:
     inputs:
       version:

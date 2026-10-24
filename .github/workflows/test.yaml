@@ -4,6 +4,15 @@ on:
   push:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish image after tests pass
+        type: boolean
+        default: false
+      version:
+        description: Image version tag (required when publishing)
+        type: string
+        required: false
 
 permissions:
   contents: read
@@ -12,6 +21,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Validate publishing version
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
+        env:
+          IMAGE_VERSION: ${{ inputs.version }}
+        run: |
+          if ! [[ "$IMAGE_VERSION" =~ ^[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}$ ]]; then
+            echo '::error::A valid image version tag is required when publishing.'
+            exit 1
+          fi
       - uses: actions/checkout@v4
       - uses: docker/setup-buildx-action@v3
       - name: Build PHP 8.5.12 test image
@@ -60,3 +78,12 @@ jobs:
         if: always()
         run: |
           docker compose -p lsky-ci -f compose.test.yaml down --volumes
+
+  publish:
+    needs: test
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/master') || (github.event_name == 'workflow_dispatch' && inputs.publish)
+    uses: ./.github/workflows/docker.yaml
+    with:
+      version: ${{ github.event_name == 'push' && format('sha-{0}', github.sha) || inputs.version }}
+    secrets:
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
