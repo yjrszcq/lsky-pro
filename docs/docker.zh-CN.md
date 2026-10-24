@@ -42,7 +42,7 @@ docker run -d --name lsky-pro --restart unless-stopped \
 更新前备份数据卷和数据库，保留可回退的旧镜像。使用 SQLite 时可先停止应用再备份卷，避免数据库写入过程中的不一致。
 
 ```sh
-docker compose stop app
+docker compose stop lsky-pro
 docker run --rm -v lsky-pro_lsky-data:/data:ro -v "$PWD":/backup \
   alpine tar czf /backup/lsky-data-backup.tar.gz -C /data .
 ```
@@ -52,9 +52,9 @@ docker run --rm -v lsky-pro_lsky-data:/data:ro -v "$PWD":/backup \
 更新已发布的镜像：
 
 ```sh
-docker compose pull app
-docker compose run --rm app php artisan migrate --force
-docker compose up -d --force-recreate app
+docker compose pull lsky-pro
+docker compose run --rm lsky-pro php artisan migrate --force
+docker compose up -d --force-recreate lsky-pro
 ```
 
 如需从源码构建生产镜像，可执行 `docker build --pull --target production -t szcq/lsky-pro:latest .`，然后运行上述迁移和重建命令，跳过拉取镜像。
@@ -70,14 +70,14 @@ docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 开发镜像默认使用 UID/GID 1000 的 Web 用户。Linux 宿主机用户 ID 不同，可在构建时传入 `LOCAL_UID=$(id -u) LOCAL_GID=$(id -g)`，避免绑定目录权限不匹配。开发环境绑定当前源码，Composer 依赖放在单独的 `lsky-vendor` 卷中，运行数据仍使用 `lsky-data`。开发和生产部署建议使用不同的 Compose 项目名（`-p`），避免共用数据。修改 Composer 锁文件后，重新构建开发镜像并更新依赖卷：
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml run --rm app composer install
+docker compose -f compose.yaml -f compose.dev.yaml run --rm lsky-pro composer install
 ```
 
 Artisan 和 Composer 均在 PHP 8.5.12 容器中运行：
 
 ```sh
-docker compose -f compose.yaml -f compose.dev.yaml exec app php artisan --version
-docker compose -f compose.yaml -f compose.dev.yaml exec app composer check-platform-reqs
+docker compose -f compose.yaml -f compose.dev.yaml exec lsky-pro php artisan --version
+docker compose -f compose.yaml -f compose.dev.yaml exec lsky-pro composer check-platform-reqs
 ```
 
 PHP 原生安装也需要精确的 8.5.12 和相同扩展；`.php-version` 与 Composer 平台配置已固定版本。推荐使用上述容器以减少环境差异。
@@ -88,11 +88,11 @@ PHP 原生安装也需要精确的 8.5.12 和相同扩展；`.php-version` 与 C
 
 ```sh
 docker compose -p lsky-tests -f compose.test.yaml build
-docker compose -p lsky-tests -f compose.test.yaml run --rm tests
+docker compose -p lsky-tests -f compose.test.yaml run --rm lsky-pro
 TEST_DB_CONNECTION=mysql TEST_DB_DATABASE=lsky \
-  docker compose -p lsky-tests -f compose.test.yaml run --rm tests
+  docker compose -p lsky-tests -f compose.test.yaml run --rm lsky-pro
 TEST_DB_CONNECTION=pgsql TEST_DB_HOST=postgres TEST_DB_PORT=5432 TEST_DB_DATABASE=lsky \
-  docker compose -p lsky-tests -f compose.test.yaml run --rm tests
+  docker compose -p lsky-tests -f compose.test.yaml run --rm lsky-pro
 docker compose -p lsky-tests -f compose.test.yaml down --volumes
 ```
 

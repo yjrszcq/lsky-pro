@@ -1,6 +1,7 @@
 services:
-  app:
+  lsky-pro:
     image: lsky-pro:dev
+    container_name: lsky-pro-dev
     build:
       target: development
       args:

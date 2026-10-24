@@ -36,19 +36,19 @@ jobs:
       - name: Build protocol fixtures
         run: docker compose -p lsky-ci -f compose.test.yaml build fixtures
       - name: SQLite and real service integrations
-        run: docker compose -p lsky-ci -f compose.test.yaml run --rm tests
+        run: docker compose -p lsky-ci -f compose.test.yaml run --rm lsky-pro
       - name: MySQL 8.4 regression tests
         env:
           TEST_DB_CONNECTION: mysql
           TEST_DB_DATABASE: lsky
-        run: docker compose -p lsky-ci -f compose.test.yaml run --rm tests
+        run: docker compose -p lsky-ci -f compose.test.yaml run --rm lsky-pro
       - name: PostgreSQL 16 regression tests
         env:
           TEST_DB_CONNECTION: pgsql
           TEST_DB_HOST: postgres
           TEST_DB_PORT: '5432'
           TEST_DB_DATABASE: lsky
-        run: docker compose -p lsky-ci -f compose.test.yaml run --rm tests
+        run: docker compose -p lsky-ci -f compose.test.yaml run --rm lsky-pro
       - name: Build production image
         uses: docker/build-push-action@v6
         with:

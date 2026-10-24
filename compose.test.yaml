@@ -1,6 +1,6 @@
 # Isolated services and known disposable credentials. No host ports are exposed.
 services:
-  tests:
+  lsky-pro:
     image: lsky-pro:dev
     build:
       context: .
