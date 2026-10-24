@@ -76,7 +76,7 @@ class Install extends Command
 
         try {
             if ($options['connection'] === 'sqlite' && ! $options['database']) {
-                $options['database'] = database_path('database.sqlite');
+                $options['database'] = storage_path('database.sqlite');
                 file_put_contents($options['database'], '');
                 Config::set('database.connections.sqlite.database', $options['database']);
             }

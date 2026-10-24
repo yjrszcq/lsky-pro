@@ -6,8 +6,7 @@
 !.env.example
 vendor
 node_modules
-storage/**
-!storage/**/.gitignore
+storage
 bootstrap/cache/*.php
 public/i
 public/storage

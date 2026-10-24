@@ -1,0 +1,65 @@
+# Isolated services and known disposable credentials. No host ports are exposed.
+services:
+  tests:
+    image: lsky-pro:dev-php8.5.12
+    build:
+      context: .
+      target: development
+    command: ["php", "vendor/bin/phpunit"]
+    environment:
+      APP_ENV: testing
+      APP_KEY: "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+      LSKY_INTEGRATION: "1"
+      DB_CONNECTION: "${TEST_DB_CONNECTION:-sqlite}"
+      DB_HOST: "${TEST_DB_HOST:-mysql}"
+      DB_PORT: "${TEST_DB_PORT:-3306}"
+      DB_DATABASE: "${TEST_DB_DATABASE:-:memory:}"
+      DB_USERNAME: lsky
+      DB_PASSWORD: container-test-password
+      REDIS_HOST: redis
+    depends_on:
+      fixtures:
+        condition: service_healthy
+      mysql:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+  fixtures:
+    build: tests/docker
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; [socket.create_connection(('127.0.0.1', p), 2).close() for p in [21,22,5000,8080,8025,8070]]"]
+      interval: 2s
+      timeout: 10s
+      retries: 30
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: lsky
+      MYSQL_USER: lsky
+      MYSQL_PASSWORD: container-test-password
+      MYSQL_ROOT_PASSWORD: container-test-root-password
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 2s
+      timeout: 5s
+      retries: 60
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lsky
+      POSTGRES_USER: lsky
+      POSTGRES_PASSWORD: container-test-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lsky"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 5s
+      retries: 30

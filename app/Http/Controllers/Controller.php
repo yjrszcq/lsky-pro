@@ -74,9 +74,9 @@ class Controller extends BaseController
             'intro' => '设置和获取文件、文件夹权限函数',
             'result' => function_exists('chmod') && function_exists('chown') && function_exists('fileperms'),
         ])->push([
-            'name' => 'PHP >= 8.0.2',
-            'intro' => '最低要求 PHP 8.0.2 版本',
-            'result' => phpversion() >= 8,
+            'name' => 'PHP 8.5.12',
+            'intro' => '运行、开发和测试统一使用 PHP 8.5.12',
+            'result' => PHP_VERSION === '8.5.12',
         ]);
 
         $status = ! $extensions->where('result', false)->isNotEmpty();
@@ -125,6 +125,8 @@ class Controller extends BaseController
 
     public function upload(Request $request, ImageService $service): Response
     {
+        $request->validate(['file' => ['required', 'file']]);
+
         try {
             $image = $service->store($request);
         } catch (UploadException $e) {

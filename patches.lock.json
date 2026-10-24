@@ -1,0 +1,17 @@
+{
+    "_hash": "00c6d6dcdbca9a838f551992056cc9c143dd29e35bcadc25dfd47f36868058d1",
+    "patches": {
+        "qiniu/php-sdk": [
+            {
+                "package": "qiniu/php-sdk",
+                "description": "Use an explicit nullable Region parameter on PHP 8.5",
+                "url": "patches/qiniu-explicit-nullable-region.patch",
+                "sha256": "208a0f3fd76fdff603254793fe62f66cddb4ea3470abbaa885f6c75172e674cd",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}

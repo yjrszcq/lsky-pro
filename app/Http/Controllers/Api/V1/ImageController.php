@@ -21,6 +21,8 @@ class ImageController extends Controller
      */
     public function upload(Request $request, ImageService $service): Response
     {
+        $request->validate(['file' => ['required', 'file']]);
+
         if ($request->hasHeader('Authorization')) {
             $guards = array_keys(config('auth.guards'));
 

@@ -9,6 +9,7 @@
     "license": "GPL-3.0",
     "require": {
         "alibabacloud/green": "^1.8",
+        "cweagans/composer-patches": "^2.0",
         "doctrine/dbal": "^4.0",
         "erusev/parsedown": "^1.7",
         "ext-bcmath": "*",
@@ -74,6 +75,11 @@
     "extra": {
         "laravel": {
             "dont-discover": []
+        },
+        "patches": {
+            "qiniu/php-sdk": {
+                "Use an explicit nullable Region parameter on PHP 8.5": "patches/qiniu-explicit-nullable-region.patch"
+            }
         }
     },
     "config": {
@@ -82,6 +88,9 @@
         "sort-packages": true,
         "platform": {
             "php": "8.5.12"
+        },
+        "allow-plugins": {
+            "cweagans/composer-patches": true
         }
     },
     "minimum-stability": "stable",

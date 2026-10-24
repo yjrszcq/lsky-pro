@@ -160,7 +160,7 @@ class ImageService
                 // 获取拓展名，判断是否需要转换
                 $format = $format ?: $extension;
                 $filename = Str::replaceLast($extension, $format, $file->getClientOriginalName());
-                $handleImage = InterventionImage::make($file)->save('tmp_' . md5_file($file->getRealPath()), $quality);
+                $handleImage = InterventionImage::make($file)->save($file->getRealPath(), $quality, $format);
                 $file = new UploadedFile($handleImage->basePath(), $filename, $handleImage->mime());
                 // 重新设置拓展名
                 $extension = $format;
@@ -356,6 +356,7 @@ class ImageService
                     'region' => $configs->get(MinioOption::Region),
                     'version' => '2006-03-01',
                     'bucket_endpoint' => (bool)$configs->get(MinioOption::BucketEndpoint),
+                    'use_path_style_endpoint' => ! (bool)$configs->get(MinioOption::BucketEndpoint),
                 ]),
                 bucket: $configs->get(MinioOption::Bucket),
             ),
@@ -559,11 +560,17 @@ class ImageService
 
                 // 生成缩略图，svg等格式本身体积足够小且网页原生支持(比生成的png缩略图还小)，不用生成缩略图，直接复制文件
                 if($image->extension ==='svg') {
-                    copy($data->getPathname(), $pathname);
+                    file_put_contents($pathname, $data instanceof UploadedFile ? $data->getContent() : $data);
                 }else{
                     @ini_set('memory_limit', '512M');
 
-                    $img = InterventionImage::make($data);
+                    $source = $data;
+                    if ($image->extension === 'ico') {
+                        $source = new \Imagick();
+                        $source->setFormat('ico');
+                        $source->readImageBlob($data instanceof UploadedFile ? $data->getContent() : $data);
+                    }
+                    $img = InterventionImage::make($source);
 
                     $width = $w = $image->width;
                     $height = $h = $image->height;

@@ -37,6 +37,9 @@ if [ "${1:-}" = 'apache2-foreground' ]; then
         php artisan key:generate --force
     fi
     php artisan package:discover --ansi
+    if [ -f installed.lock ]; then
+        php artisan lsky:storage-link
+    fi
 fi
 
 exec docker-php-entrypoint "$@"

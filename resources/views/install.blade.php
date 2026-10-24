@@ -144,7 +144,7 @@
             case 'pgsql':
                 break;
             case 'sqlite':
-                message = 'SQLite 数据库本质上只是一个存在你文件系统上的文件，下面的数据库路径如果为空，程序将会自动在根目录 database 文件夹中创建 database.sqlite 文件，否则请填写该数据库文件的绝对路径。';
+                message = 'SQLite 数据库本质上只是一个存在你文件系统上的文件，下面的数据库路径如果为空，程序将会自动在 storage 文件夹中创建 database.sqlite 文件，否则请填写该数据库文件的绝对路径。';
                 $(selector).parent().hide();
                 break;
             case 'sqlsrv':

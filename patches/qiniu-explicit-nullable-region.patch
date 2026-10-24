@@ -1,0 +1,12 @@
+diff --git a/src/Qiniu/Config.php b/src/Qiniu/Config.php
+--- a/src/Qiniu/Config.php
++++ b/src/Qiniu/Config.php
+@@ -41,7 +41,7 @@
+     public $backupUcHostsRetryTimes;
+ 
+     // 构造函数
+-    public function __construct(Region $z = null)
++    public function __construct(?Region $z = null)
+     {
+         $this->zone = $z;
+         $this->useHTTPS = false;
