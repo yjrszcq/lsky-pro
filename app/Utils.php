@@ -143,7 +143,7 @@ class Utils
      * @param  int  $mode
      * @return array
      */
-    public static function filter(array $array, callable $callback = null, int $mode = 0): array
+    public static function filter(array $array, ?callable $callback = null, int $mode = 0): array
     {
         foreach ($array as &$value) {
             if (is_array($value)) {

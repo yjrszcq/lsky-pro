@@ -1,0 +1,14 @@
+services:
+  app:
+    image: lsky-pro:dev-php8.5.12
+    build:
+      target: development
+    environment:
+      APP_ENV: local
+      APP_DEBUG: "true"
+    volumes:
+      - .:/var/www/html
+      - lsky-vendor:/var/www/html/vendor
+
+volumes:
+  lsky-vendor:

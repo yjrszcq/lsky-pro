@@ -18,3 +18,5 @@ yarn-error.log
 /.idea
 /.vscode
 /public/i
+
+.checkpoint-karpathy/private/

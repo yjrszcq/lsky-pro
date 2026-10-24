@@ -1,0 +1,16 @@
+services:
+  app:
+    image: lsky-pro:php8.5.12
+    build:
+      context: .
+      target: production
+    ports:
+      - "${LSKY_PORT:-8089}:8089"
+    environment:
+      APP_URL: "${LSKY_URL:-http://localhost:8089}"
+    volumes:
+      - lsky-data:/var/www/html/storage
+    restart: unless-stopped
+
+volumes:
+  lsky-data:
