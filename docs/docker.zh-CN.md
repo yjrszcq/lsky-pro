@@ -133,7 +133,7 @@ python3 tests/docker/acceptance.py --browser
 测试和发布由两个工作流在 GitHub 执行：
 
 - [Container tests](../.github/workflows/test.yaml)：推送到 `master` 时自动执行，也支持在 Actions 页面手动运行；执行数据库、服务集成及生产 HTTP/浏览器/持久化验收。PR、`dev` 分支推送和标签推送不自动触发。
-- 根目录 [VERSION](../VERSION) 保存版本号，当前为 `2.1`。推送到 `master` 时，测试成功后自动调用发布工作流，读取该次提交的 `VERSION`，发布 `szcq/lsky-pro:2.1` 和 `szcq/lsky-pro:latest`。
+- 根目录 [VERSION](../VERSION) 保存版本号，当前为 `2.1`。推送到 `master` 始终测试；只有本次推送修改了 `VERSION` 且测试成功，才自动调用发布工作流，读取该次提交的版本号并发布版本标签和 `latest`。判断比较整次推送前后的 `VERSION`，支持一次推送多个提交；未修改时仅测试。
 - 手动测试的 `publish` 选项默认为 `false`；勾选后，测试成功才调用发布工作流，构建该次测试对应提交的镜像。`version` 预填 `2.1`，可修改；清空则读取 `VERSION`。手动未勾选或测试失败时不发布。
 - [Build and Push Docker Image](../.github/workflows/docker.yaml)：可由测试工作流调用，也可单独手动运行；`version` 同样预填 `2.1`，清空则读取 `VERSION`。单独运行不会等待或执行测试，发布前应确认所选提交的测试结果。
 - 发布 Docker Hub 镜像 `szcq/lsky-pro:<version>` 和 `szcq/lsky-pro:latest`，支持 `linux/amd64`、`linux/arm64`。

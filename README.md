@@ -50,7 +50,7 @@ docker compose up -d
 
 访问 `http://localhost:8089` 完成安装。运行、开发和测试统一使用 PHP **8.5.12**，后端依赖已更新到 Laravel 12。配置、数据库和图片保存在独立数据卷中。
 
-部署、备份、更新、本地开发和容器测试命令见 [Docker 使用说明](docs/docker.zh-CN.md)。版本号记录在 [VERSION](VERSION)，当前为 `2.1`。推送到 `master` 自动运行测试，成功后发布该版本和 `latest`；手动测试的 `publish` 默认为 `false`，版本号预填 `2.1`，勾选后在测试成功时发布。也可单独手动运行发布工作流，构建并发布 amd64/arm64 镜像到 Docker Hub 的 `szcq/lsky-pro`。
+部署、备份、更新、本地开发和容器测试命令见 [Docker 使用说明](docs/docker.zh-CN.md)。版本号记录在 [VERSION](VERSION)，当前为 `2.1`。推送到 `master` 自动运行测试，仅在本次推送修改了 `VERSION` 且测试成功时发布该版本和 `latest`；手动测试的 `publish` 默认为 `false`，版本号预填 `2.1`，勾选后在测试成功时发布。也可单独手动运行发布工作流，构建并发布 amd64/arm64 镜像到 Docker Hub 的 `szcq/lsky-pro`。
 
 ### 🛠 安装要求
 - PHP 8.5.12
