@@ -4,7 +4,7 @@
 
 ☁ Your photo album on the cloud.
 
-[![PHP](https://img.shields.io/badge/PHP->=8.0-orange.svg)](http://php.net)
+[![PHP](https://img.shields.io/badge/PHP-8.5.12-orange.svg)](http://php.net)
 [![Release](https://img.shields.io/github/v/release/lsky-org/lsky-pro)](https://github.com/lsky-org/lsky-pro/releases)
 [![Issues](https://img.shields.io/github/issues/lsky-org/lsky-pro)](https://github.com/lsky-org/lsky-pro/issues)
 [![Code size](https://img.shields.io/github/languages/code-size/lsky-org/lsky-pro?color=blueviolet)](https://github.com/lsky-org/lsky-pro)
@@ -41,8 +41,18 @@
 * [x] 支持在线增量更新、跨版本更新
 * [x] 图片广场
 
+### 🐳 Docker 部署
+
+```sh
+docker compose up -d --build
+```
+
+访问 `http://localhost:8089` 完成安装。运行、开发和测试统一使用 PHP **8.5.12**，后端依赖已更新到 Laravel 12。配置、数据库和图片保存在独立数据卷中。
+
+部署、备份、更新、本地开发和容器测试命令见 [Docker 使用说明](docs/docker.zh-CN.md)。GitHub 工作流在测试通过后构建并发布 amd64/arm64 镜像到 GHCR。
+
 ### 🛠 安装要求
-- PHP >= 8.0.2
+- PHP 8.5.12
 - BCMath PHP 扩展
 - Ctype PHP 扩展
 - DOM PHP 拓展
