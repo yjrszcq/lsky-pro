@@ -132,11 +132,11 @@ python3 tests/docker/acceptance.py --browser
 
 [工作流](../.github/workflows/main.yml) 在 GitHub 执行：
 
-- PR 执行容器测试和生产镜像构建，不发布镜像。
-- 推送 `master`、`dev`、`v*` 标签或手动触发时，先测试，通过后发布到 `ghcr.io/<owner>/<repo>`。
-- 发布 `linux/amd64`、`linux/arm64` 镜像，生成分支、提交和语义版本标签；默认分支提供 `latest`。
-- 使用仓库自带 `GITHUB_TOKEN`，发布作业需要 Packages 写权限。首次发布后可在 GitHub Packages 设置镜像可见性。
+- PR、推送 `master`、`dev` 或 `v*` 标签时，执行容器测试和生产镜像构建，不发布镜像。
+- 在 Actions 页面手动运行工作流，填写 `version`（例如 `1.0.0`）；先完成测试，通过后发布镜像。
+- 发布 Docker Hub 镜像 `szcq/lsky-pro:<version>` 和 `szcq/lsky-pro:latest`，支持 `linux/amd64`、`linux/arm64`。
+- 在仓库 Settings → Secrets and variables → Actions 中添加 `DOCKER_TOKEN`，值为有权推送 `szcq/lsky-pro` 的 Docker Hub 访问令牌。登录用户名由工作流的 `IMAGE_OWNER: szcq` 指定。
 
-当前工作流发布到 GHCR；用户部署配置使用的 `szcq/lsky-pro:latest` 需另行发布到 Docker Hub。
 
-本地仅检查工作流语法，并直接执行 Docker 构建和应用测试，不模拟执行 GitHub Actions。多架构构建与实际 GHCR 推送结果以 GitHub 工作流运行记录为准。
+
+本地仅检查工作流语法，并直接执行 Docker 构建和应用测试，不模拟执行 GitHub Actions。多架构构建与实际 Docker Hub 推送结果以 GitHub 工作流运行记录为准。

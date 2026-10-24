@@ -1,4 +1,4 @@
-name: Container tests
+name: Container tests and image publishing
 
 on:
   push:
@@ -6,6 +6,15 @@ on:
     tags: ['v*']
   pull_request:
   workflow_dispatch:
+    inputs:
+      version:
+        description: Image version tag
+        required: true
+        type: string
+
+env:
+  IMAGE_OWNER: szcq
+  IMAGE_NAME: lsky-pro
 
 permissions:
   contents: read
@@ -64,42 +73,30 @@ jobs:
           docker compose -p lsky-ci -f compose.test.yaml down --volumes
 
   publish:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'workflow_dispatch'
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - uses: docker/setup-buildx-action@v4
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v4
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Image tags and labels
-        id: metadata
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=latest,enable={{is_default_branch}}
-            type=ref,event=branch
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
+          username: ${{ env.IMAGE_OWNER }}
+          password: ${{ secrets.DOCKER_TOKEN }}
       - name: Build and publish amd64 and arm64 images
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: production
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
+          tags: |
+            ${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:${{ inputs.version }}
+            ${{ env.IMAGE_OWNER }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha,scope=production
           cache-to: type=gha,mode=max,scope=production
           provenance: mode=max
