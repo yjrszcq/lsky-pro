@@ -1,6 +1,12 @@
 #!/bin/sh
 set -eu
 
+# One-off Artisan commands must read the same persisted configuration as Apache.
+if [ -f storage/.env ]; then
+    ln -sfn /var/www/html/storage/.env .env
+    ln -sfn /var/www/html/storage/installed.lock installed.lock
+fi
+
 if [ "${1:-}" = 'apache2-foreground' ]; then
     case "$WEB_PORT" in
         ''|*[!0-9]*) echo 'WEB_PORT must be an integer from 1 to 65535' >&2; exit 1 ;;

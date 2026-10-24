@@ -52,14 +52,15 @@ jobs:
             type=gha,scope=development
             type=gha,scope=production
           cache-to: type=gha,mode=max,scope=production
-      - name: Check production installation page
+      - name: Install browser test dependencies
         run: |
-          docker run -d --name lsky-http -p 127.0.0.1:8089:8089 lsky-pro:php8.5.12
-          curl --fail --retry 30 --retry-delay 2 --retry-connrefused http://127.0.0.1:8089/install
+          python3 -m pip install playwright==1.55.0
+          python3 -m playwright install --with-deps chromium
+      - name: Production HTTP, browser and persistence acceptance
+        run: python3 tests/docker/acceptance.py --browser
       - name: Clean up test containers
         if: always()
         run: |
-          docker rm -f lsky-http || true
           docker compose -p lsky-ci -f compose.test.yaml down --volumes
 
   publish:

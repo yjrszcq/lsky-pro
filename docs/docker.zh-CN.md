@@ -62,7 +62,7 @@ docker compose up -d --force-recreate app
 docker compose -f compose.yaml -f compose.dev.yaml up -d --build
 ```
 
-开发环境绑定当前源码，Composer 依赖放在单独的 `lsky-vendor` 卷中，运行数据仍使用 `lsky-data`。开发和生产部署建议使用不同的 Compose 项目名（`-p`），避免共用数据。修改 Composer 锁文件后，重新构建开发镜像并更新依赖卷：
+开发镜像默认使用 UID/GID 1000 的 Web 用户。Linux 宿主机用户 ID 不同，可在构建时传入 `LOCAL_UID=$(id -u) LOCAL_GID=$(id -g)`，避免绑定目录权限不匹配。开发环境绑定当前源码，Composer 依赖放在单独的 `lsky-vendor` 卷中，运行数据仍使用 `lsky-data`。开发和生产部署建议使用不同的 Compose 项目名（`-p`），避免共用数据。修改 Composer 锁文件后，重新构建开发镜像并更新依赖卷：
 
 ```sh
 docker compose -f compose.yaml -f compose.dev.yaml run --rm app composer install
@@ -101,6 +101,27 @@ docker run --rm lsky-pro:dev-php8.5.12 php vendor/bin/phpunit --exclude-group in
 ```
 
 S3/MinIO 适配器使用 Moto HTTP 协议服务验证传输和图片上传管线；这不能替代 AWS 或 MinIO 实例验收。云审核和远程更新的单元测试使用固定响应验证应用处理逻辑。OSS、COS、七牛、又拍云及商业审核服务的完整联调需要专用测试凭据，不能从本地测试通过推断厂商服务可用。
+
+## 生产容器验收
+
+```sh
+docker build --target production -t lsky-pro:php8.5.12 .
+python3 tests/docker/acceptance.py
+```
+
+脚本创建独立容器、随机本机端口和一次性数据卷，执行真实 HTTP 安装、上传、管理、API、迁移和容器重建验证，结束时清理自己创建的资源。仅使用 Python 标准库和 Docker CLI。
+
+浏览器操作额外需要 Playwright 和 Chromium：
+
+```sh
+python3 -m pip install playwright==1.55.0
+python3 -m playwright install --with-deps chromium
+python3 tests/docker/acceptance.py --browser
+```
+
+验证非默认容器监听端口：`python3 tests/docker/acceptance.py --web-port 8097`。
+
+测试结果及外部服务限制见 [验证报告](verification.zh-CN.md)。
 
 ## GitHub 镜像构建
 

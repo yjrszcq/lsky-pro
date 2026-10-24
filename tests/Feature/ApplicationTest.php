@@ -239,7 +239,13 @@ class ApplicationTest extends TestCase
         $image->delete();
     }
 
-    public function test_image_watermark_overlay_changes_stored_pixels(): void
+    public static function watermarkPositionProvider(): array
+    {
+        return [['bottom-right'], ['tiled']];
+    }
+
+    #[DataProvider('watermarkPositionProvider')]
+    public function test_image_watermark_overlay_changes_stored_pixels(string $position): void
     {
         $plain = $this->upload();
         @mkdir(storage_path('app/public'), 0777, true);
@@ -250,6 +256,7 @@ class ApplicationTest extends TestCase
         $watermark['mode'] = Mode::Overlay;
         $watermark['drivers']['image']['image'] = 'test-watermark.png';
         $watermark['drivers']['image']['width'] = 80;
+        $watermark['drivers']['image']['position'] = $position;
         $watermark['drivers']['image']['rotate'] = 15;
         $watermark['drivers']['image']['opacity'] = 50;
         $this->configureGroup([GroupConfigKey::IsEnableWatermark => true, GroupConfigKey::WatermarkConfigs => $watermark]);
